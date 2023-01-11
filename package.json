@@ -1,9 +1,13 @@
 {
 	"name": "flaiir",
 	"displayName": "Flaiir",
-	"description": "get code completion suggestions for a selected piece of code",
+	"description": "Get code completion suggestions for a selected piece of code",
 	"version": "0.0.1",
 	"icon": "images/flaiir.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/MadsHaerup/flaiir"
+	},
 	"engines": {
 		"vscode": "^1.74.0"
 	},
