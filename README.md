@@ -35,4 +35,16 @@ flaiir.config.js
 
 - Install extension
 
+- Highlight the comment your want to generate code from
+
+For example, write the following comment in a file and hightlight it with your mouse.
+
+```js
+// create a fetch function with async/await
+```
+
+Then
+
 - Open command palette: **shift + command + p** and type “flaiir get code suggestions” and hit the _Enter key_
+
+- Wait for the code to be generated. It will open up in new tab.
