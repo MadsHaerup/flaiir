@@ -47,4 +47,4 @@ Then
 
 - Open command palette: **shift + command + p** and type “flaiir get code suggestions” and hit the _Enter key_
 
-- Wait for the code to be generated. It will open up in new tab.
+- Wait for the code to be generated. It will open up in a new tab.
