@@ -3,7 +3,7 @@ import { Configuration, OpenAIApi } from 'openai';
 import * as path from 'path';
 import * as fs from 'fs';
 
-async function generateCode(jsonContent: any): Promise<void> {
+async function getCodeEdit(jsonContent: any): Promise<void> {
 	// Set up the configuration object
 	const configuration = new Configuration({
 		organization: jsonContent.organization,
@@ -13,65 +13,50 @@ async function generateCode(jsonContent: any): Promise<void> {
 	// Create the OpenAIApi object
 	const openai = new OpenAIApi(configuration);
 	// Set the model to use for code completions
-	const model = jsonContent.completion_model;
+	const model = jsonContent.edit_model;
 
 	// Get the current text editor
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
 		// Get the position of the last line of the highlighted text
 		let selection = editor.selection;
-		let lastLine = selection.end.line;
-		// Get the last character of the last line
-		let lastChar = editor.document.lineAt(lastLine).range.end;
 
 		//get filepath from the currently open file
 		const filePath = editor?.document.uri.fsPath;
 		let fileExtension;
 		if (filePath) fileExtension = path.extname(filePath);
 
-		// Get the selected text
-		const code_snippet = editor?.document.getText(selection);
-
-		// Get the cursor position
-		const cursor_position = selection?.active.character;
-
 		// Modify the prompt to include the cursor position
-		const prompt =
-			code_snippet?.substring(0, cursor_position) +
-			'|' +
-			code_snippet?.substring(cursor_position as number) +
-			'in' +
-			fileExtension;
+		const instruction = editor.document.lineAt(selection.start.line).text;
+		const input = editor.document.getText(
+			new vscode.Range(selection.start.line + 1, 0, selection.end.line, selection.end.character)
+		);
+		console.log(instruction);
+		console.log(input);
 
-		console.log(prompt);
-
-		// Get the code completion suggestions
-		const response = await openai.createCompletion({
-			model: jsonContent.completion_model ? jsonContent.completion_model : 'text-davinci-003',
-			prompt,
-			max_tokens: 1024,
-			temperature: jsonContent.completion_temperature ? jsonContent.completion_temperature : 0,
+		// Get the code edit suggestions
+		const response = await openai.createEdit({
+			model: jsonContent.edit_model ? jsonContent.edit_model : 'code-davinci-edit-001',
+			input,
+			instruction,
+			temperature: jsonContent.edit_temperature ? jsonContent.edit_temperature : 0.6,
 			top_p: 1,
-			frequency_penalty: 0,
-			presence_penalty: 0,
-			best_of: 1,
-			n: 1,
 		});
 
-		console.log(response);
-
-		// Insert the suggestions after the last character of the last line
+		console.log('RESPONSE', response);
+		// Replace the highlighted text with the suggestions
 		editor.edit(editBuilder => {
-			editBuilder.insert(lastChar, '\n' + response.data.choices[0].text);
+			editBuilder.replace(selection, response.data.choices[0].text as string);
 		});
 	} else {
 		vscode.window.showErrorMessage('No text editor is active. Please open a file first.');
 	}
 }
 
-const getCodeSuggestions = vscode.commands.registerCommand('flaiir.getCodeSuggestions.start', () => {
+let editCode = vscode.commands.registerCommand('flaiir.getCodeEdit.start', () => {
 	const defaultPath = path.join(require('os').homedir(), 'flaiir.config.json');
 	let jsonFile = defaultPath;
+
 	if (vscode.workspace.workspaceFolders !== undefined) {
 		jsonFile = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'flaiir.config.json');
 	}
@@ -114,7 +99,7 @@ const getCodeSuggestions = vscode.commands.registerCommand('flaiir.getCodeSugges
 	try {
 		const fileContent = fs.readFileSync(jsonFile, 'utf-8');
 		const jsonContent = JSON.parse(fileContent);
-		generateCode(jsonContent);
+		getCodeEdit(jsonContent);
 	} catch (err: any) {
 		if (err.code === 'ENOENT') {
 			vscode.window.showErrorMessage('flaiir.config.json file not found.');
@@ -126,4 +111,4 @@ const getCodeSuggestions = vscode.commands.registerCommand('flaiir.getCodeSugges
 	}
 });
 
-export default getCodeSuggestions;
+export default editCode;
