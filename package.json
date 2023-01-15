@@ -1,8 +1,8 @@
 {
 	"name": "flaiir",
-	"displayName": "Flaiir",
+	"displayName": "flaiir",
 	"description": "An AI tool that utilizes the OpenAI API to generate code suggestions, fixes spelling mistakes, refactor existing code and explains code for the user, based on the current text editors selection and file type.",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"license": "SEE LICENSE IN LICENSE",
 	"publisher": "flaiir",
 	"icon": "images/flaiir.png",
@@ -17,26 +17,87 @@
 		"Other"
 	],
 	"activationEvents": [],
-	"main": "./out/extension.js",
+	"main": "./out/main.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "flaiir.getCodeSuggestions.start",
+				"command": "flaiir.getCodeSuggestions",
 				"title": "flaiir generator/explainer"
 			},
 			{
-				"command": "flaiir.getCodeEdit.start",
+				"command": "flaiir.getCodeEdit",
 				"title": "flaiir refactor"
 			}
-		]
+		],
+		"configuration": {
+			"type": "object",
+			"title": "flaiir",
+			"properties": {
+				"openai.apiKey": {
+					"type": "string",
+					"default": ""
+				},
+				"openai.organizationID": {
+					"type": "string",
+					"default": ""
+				},
+				"openai.edit.model": {
+					"type": "string",
+					"default": "code-davinci-edit-001",
+					"enum": [
+						"code-davinci-edit-001",
+						"text-davinci-edit-001"
+					]
+				},
+				"openai.completion.model": {
+					"type": "string",
+					"default": "text-davinci-003"
+				},
+				"openai.edit.temperature": {
+					"description": "For the code edit model. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+					"type": "number",
+					"default": 0.6,
+					"enum": [
+						1,
+						0.9,
+						0.8,
+						0.7,
+						0.6,
+						0.5,
+						0.4,
+						0.3,
+						0.2,
+						0.1,
+						0
+					]
+				},
+				"openai.completion.temperature": {
+					"type": "number",
+					"description": "For the code generator model. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+					"default": 0,
+					"enum": [
+						1,
+						0.9,
+						0.8,
+						0.7,
+						0.6,
+						0.5,
+						0.4,
+						0.3,
+						0.2,
+						0.1,
+						0
+					]
+				}
+			}
+		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "npm run esbuild-base -- --sourcemap",
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+		"test-compile": "tsc -p ./"
 	},
 	"devDependencies": {
 		"@types/glob": "^8.0.0",
@@ -46,13 +107,14 @@
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
 		"@vscode/test-electron": "^2.2.0",
+		"esbuild": "^0.17.0",
 		"eslint": "^8.28.0",
 		"glob": "^8.0.3",
 		"mocha": "^10.1.0"
 	},
 	"dependencies": {
-		"typescript": "^4.9.3",
 		"axios": "^1.2.2",
-		"openai": "^3.1.0"
+		"openai": "^3.1.0",
+		"typescript": "^4.9.3"
 	}
 }

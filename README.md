@@ -1,5 +1,4 @@
 ![flaiir](/images/banner.png)
-
 An AI tool that utilizes the OpenAI API to generate code suggestions, fixes spelling mistakes, refactor existing code and explains code for the user, based on the current text editors selection and file type.
 
 ---
@@ -10,8 +9,8 @@ An AI tool that utilizes the OpenAI API to generate code suggestions, fixes spel
   - Shown inline under the highlighted comment/code.
 - Explain code.
 - Refactor code.
-- Auto detecting your current file extension (.js, .ts, .py etc..) to deliver the code in the right format.
-- Quickly fix spelling mistakes in comments, markdown and text files.
+- Auto detecting your current file extension (.js, .ts, .py etc..) to deliver the code in the correct format.
+- Quickly fix spelling mistakes in comments, Markdown and text files.
 
 ---
 
@@ -19,33 +18,38 @@ An AI tool that utilizes the OpenAI API to generate code suggestions, fixes spel
 
 - Create a free account on [https://beta.openai.com/](https://beta.openai.com/), you will start with 18$ in free credit that can be used during your first 3 months.
 
-- Create a flaiir.config.json file, populate the file with:
-  - your API Key, which can be found under settings and API Keys,
-  - Organization ID which can be found under settings
-  - The models you wish to use, the models can be found here [https://beta.openai.com/docs/models/gpt-3](https://beta.openai.com/docs/models/gpt-3)
-  - Temperature, a value between 0-1
-
-```js
-flaiir.config.js
-
-{
-  "organization": "YOUR-ORGINIZATION-ID",
-  "apiKey": "YOUR-API-KEY"
-  "completion_model":"text-davinci-003",
-  "edit_model": "code-davinci-edit-001",
-  "completion_temperature": 0,
-  "edit_temperature": 0.6,
-
-}
-```
-
-If you don't provide a completion model it will default to **text-davinci-003**, the edit model will default to **code-davinci-edit-001**, edit_temperature will default to **0.6**, completion_temperature defaults to **1**
+- Go to flaiir workspace settings
+  ![settings](/images/settings.png)
+- Your API Key, can be found here: [https://beta.openai.com/account/api-keys](https://beta.openai.com/account/api-keys)
+- Organization ID can be found here [https://beta.openai.com/account/org-settings](https://beta.openai.com/account/org-settings)
+- The models you wish to use, the models can be found here [https://beta.openai.com/docs/models/gpt-3](https://beta.openai.com/docs/models/gpt-3)
+- Temperature, a value between 0-1.
 
 ---
 
 ## How to use
 
 - Install extension
+
+## TL;DR
+
+```txt
+Highlight the comment/code you want to generate/explain/refactor some code or text from.
+
+Open command palette:
+
+shift + command + p
+
+Commands:
+
+flaiir generator/explainer
+	* Generates code and explains code
+
+flaiir refactor
+  *  This command refactors code and fixes spelling mistakes
+```
+
+---
 
 ### Generate code
 
@@ -129,7 +133,7 @@ for (var i = 0; i < 50; i++) {
 // What does Function 1 do?
 ```
 
-- Highlight all of the above then,
+- Highlight all of the above
   - Open command palette: **shift + command + p** and type “flaiir generator/explainer” and hit the _Enter key_
 
 Output:

@@ -1,19 +1,29 @@
 import * as vscode from 'vscode';
 import { Configuration, OpenAIApi } from 'openai';
 import * as path from 'path';
-import * as fs from 'fs';
 
-async function generateCode(jsonContent: any): Promise<void> {
+async function generateCode(): Promise<void> {
+	const vsconfig = vscode.workspace.getConfiguration();
+	let openAI_apiKey = vsconfig.get('openai.apiKey') as string;
+	let openAI_organizationID = vsconfig.get('openai.organizationID') as string;
+	let openAI_completion_model = vsconfig.get('openai.completion.model') as string;
+	let completion_temperature = vsconfig.get('openai.completion.temperature') as number;
+	if (!openAI_apiKey || !openAI_organizationID) {
+		vscode.window.showErrorMessage('Please check your settings, apiKey and organizationID are required.');
+		return;
+	}
+
 	// Set up the configuration object
 	const configuration = new Configuration({
-		organization: jsonContent.organization,
-		apiKey: jsonContent.apiKey,
+		organization: openAI_organizationID,
+		apiKey: openAI_apiKey,
 	});
 
 	// Create the OpenAIApi object
 	const openai = new OpenAIApi(configuration);
+
 	// Set the model to use for code completions
-	const model = jsonContent.completion_model;
+	const completionModel = openAI_completion_model;
 
 	// Get the current text editor
 	let editor = vscode.window.activeTextEditor;
@@ -43,85 +53,46 @@ async function generateCode(jsonContent: any): Promise<void> {
 			'in' +
 			fileExtension;
 
-		console.log(prompt);
-
 		// Get the code completion suggestions
-		const response = await openai.createCompletion({
-			model: jsonContent.completion_model ? jsonContent.completion_model : 'text-davinci-003',
-			prompt,
-			max_tokens: 1024,
-			temperature: jsonContent.completion_temperature ? jsonContent.completion_temperature : 0,
-			top_p: 1,
-			frequency_penalty: 0,
-			presence_penalty: 0,
-			best_of: 1,
-			n: 1,
-		});
+		try {
+			const response = await openai.createCompletion({
+				model: completionModel ? completionModel : 'text-davinci-003',
+				prompt,
+				max_tokens: 1024,
+				temperature: completion_temperature ? completion_temperature : 0,
+				top_p: 1,
+				frequency_penalty: 0,
+				presence_penalty: 0,
+				best_of: 1,
+				n: 1,
+			});
 
-		console.log(response);
-
-		// Insert the suggestions after the last character of the last line
-		editor.edit(editBuilder => {
-			editBuilder.insert(lastChar, '\n' + response.data.choices[0].text);
-		});
+			// Insert the suggestions after the last character of the last line
+			editor.edit(editBuilder => {
+				editBuilder.insert(lastChar, '\n' + response.data.choices[0].text);
+			});
+		} catch (error: any) {
+			if (error.response.status === 401) {
+				vscode.window.showErrorMessage('The API key and organization ID are not correct or invalid.');
+			} else {
+				vscode.window.showErrorMessage(error.message);
+			}
+		}
 	} else {
 		vscode.window.showErrorMessage('No text editor is active. Please open a file first.');
 	}
 }
 
-const getCodeSuggestions = vscode.commands.registerCommand('flaiir.getCodeSuggestions.start', () => {
-	const defaultPath = path.join(require('os').homedir(), 'flaiir.config.json');
-	let jsonFile = defaultPath;
-	if (vscode.workspace.workspaceFolders !== undefined) {
-		jsonFile = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'flaiir.config.json');
-	}
-
-	vscode.window.withProgress(
-		{
-			location: vscode.ProgressLocation.Notification,
-			title: 'Loading file...',
-			cancellable: false,
-		},
-		progress => {
-			return new Promise((resolve, reject) => {
-				fs.stat(jsonFile, (err, stats) => {
-					if (err) {
-						reject(err);
-						return;
-					}
-					const totalBytes = stats.size;
-					let bytesRead = 0;
-
-					const readStream = fs.createReadStream(jsonFile);
-					readStream.on('data', chunk => {
-						bytesRead += chunk.length;
-						const percentageComplete = (bytesRead / totalBytes) * 100;
-						progress.report({
-							increment: percentageComplete,
-						});
-					});
-					readStream.on('error', err => {
-						reject(err);
-					});
-					readStream.on('end', () => {
-						resolve('File read complete');
-						vscode.window.showInformationMessage('Thanks for using flaiir, the code is on the way');
-					});
-				});
-			});
-		}
-	);
+const getCodeSuggestions = vscode.commands.registerCommand('flaiir.getCodeSuggestions', () => {
 	try {
-		const fileContent = fs.readFileSync(jsonFile, 'utf-8');
-		const jsonContent = JSON.parse(fileContent);
-		generateCode(jsonContent);
+		generateCode();
 	} catch (err: any) {
 		if (err.code === 'ENOENT') {
-			vscode.window.showErrorMessage('flaiir.config.json file not found.');
+			vscode.window.showErrorMessage('settings.json file not found.');
 		} else if (err instanceof SyntaxError) {
-			vscode.window.showErrorMessage('flaiir.config.json file is not a valid JSON file.');
+			vscode.window.showErrorMessage('settings.json file is not a valid JSON file.');
 		} else {
-			vscode.window.showErrorMessage('An error occurred while reading flaiir.config.json file.');
+			vscode.window.showErrorMessage('An error occurred while reading settings.json file.');
 		}
 	}
 });
