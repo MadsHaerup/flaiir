@@ -2,7 +2,7 @@
 	"name": "flaiir",
 	"displayName": "flaiir",
 	"description": "An AI tool that utilizes the OpenAI API to generate code suggestions, fixes spelling mistakes, refactor existing code and explains code for the user, based on the current text editors selection and file type.",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"license": "SEE LICENSE IN LICENSE",
 	"publisher": "flaiir",
 	"icon": "images/flaiir.png",

@@ -13,3 +13,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Changed
 
 - Using flaiir.config.json to using vs code workspace settings
+
+## [1.0.1] - 2023-15-01
+
+### Added
+
+- Loading indicators
