@@ -83,9 +83,22 @@ async function generateCode(): Promise<void> {
 	}
 }
 
-const getCodeSuggestions = vscode.commands.registerCommand('flaiir.getCodeSuggestions', () => {
+const getCodeSuggestions = vscode.commands.registerCommand('flaiir.getCodeSuggestions', async () => {
 	try {
-		generateCode();
+		await vscode.window.withProgress(
+			{
+				location: vscode.ProgressLocation.Notification,
+				title: 'Loading code suggestions...',
+				cancellable: false,
+			},
+			async (progress, token) => {
+				token.onCancellationRequested(() => {
+					console.log('User canceled the long running operation');
+				});
+				await generateCode();
+				progress.report({ increment: 100 });
+			}
+		);
 	} catch (err: any) {
 		if (err.code === 'ENOENT') {
 			vscode.window.showErrorMessage('settings.json file not found.');

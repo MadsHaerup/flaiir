@@ -66,9 +66,22 @@ async function getCodeEdit(): Promise<void> {
 		vscode.window.showErrorMessage('No text editor is active. Please open a file first.');
 	}
 }
-const editCode = vscode.commands.registerCommand('flaiir.getCodeEdit', () => {
+const editCode = vscode.commands.registerCommand('flaiir.getCodeEdit', async () => {
 	try {
-		getCodeEdit();
+		await vscode.window.withProgress(
+			{
+				location: vscode.ProgressLocation.Notification,
+				title: 'Loading...',
+				cancellable: false,
+			},
+			async (progress, token) => {
+				token.onCancellationRequested(() => {
+					console.log('User canceled the long running operation');
+				});
+				await getCodeEdit();
+				progress.report({ increment: 100 });
+			}
+		);
 	} catch (err: any) {
 		if (err.code === 'ENOENT') {
 			vscode.window.showErrorMessage('settings.json file not found.');
